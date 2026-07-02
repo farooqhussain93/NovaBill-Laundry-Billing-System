@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NovaBill Laundry</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">
+      <img id="brandLogo" src="/assets/default_logo.png" alt="Logo" />
+      <div>
+        <h1>NovaBill Laundry</h1>
+        <p>Billing, Payments & Customer Management</p>
+      </div>
+    </div>
+    <button class="nav active" data-page="dashboard">Dashboard</button>
+    <button class="nav" data-page="invoice">New Invoice</button>
+    <button class="nav" data-page="history">Invoice History</button>
+    <button class="nav" data-page="customers">Customers</button>
+    <button class="nav" data-page="expenses">Expenses</button>
+    <button class="nav" data-page="settings">Settings & Backup</button>
+    <div class="sidebar-promo">
+      <strong>Smart Laundry Billing</strong>
+      <span>Invoices, customers & payments in one clean system.</span>
+      <button type="button" data-page-jump="invoice">Create Invoice</button>
+    </div>
+    <span id="connectionStatus" class="sr-status" aria-live="polite">Connecting...</span>
+  </aside>
+
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <h2 id="pageTitle">Dashboard</h2>
+        <p id="pageSubtitle">Business overview and daily performance</p>
+      </div>
+      <div class="top-actions">
+        <button class="btn secondary" id="refreshBtn">Refresh</button>
+        <button class="btn primary" data-page-jump="invoice">Create Invoice</button>
+      </div>
+    </header>
+
+    <section class="page active" id="dashboardPage">
+      <div class="cards four">
+        <div class="card stat"><span>Today Sales</span><strong id="todaySales">PKR 0.00</strong><small id="todayInvoices">0 invoices</small></div>
+        <div class="card stat"><span>This Month Sales</span><strong id="monthSales">PKR 0.00</strong><small id="monthInvoices">0 invoices</small></div>
+        <div class="card stat"><span>This Month Expenses</span><strong id="monthExpenses">PKR 0.00</strong><small id="expenseCount">0 entries</small></div>
+        <div class="card stat"><span>Monthly Profit</span><strong id="monthlyProfit">PKR 0.00</strong><small id="outstanding">Outstanding: PKR 0.00</small></div>
+      </div>
+      <div class="grid two">
+        <div class="card">
+          <div class="card-head"><h3>Recent Invoices</h3><button class="link" data-page-jump="history">View all</button></div>
+          <div class="table-wrap"><table><thead><tr><th>INVOICE NO.</th><th>Customer</th><th>Date</th><th>Total</th><th>Status</th></tr></thead><tbody id="recentInvoicesBody"></tbody></table></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Top Customers</h3></div>
+          <div class="table-wrap"><table><thead><tr><th>Customer</th><th>Invoices</th><th>Total</th></tr></thead><tbody id="topCustomersBody"></tbody></table></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>Monthly Report</h3><button class="btn small secondary" id="loadReportBtn">Reload</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Month</th><th>Sales</th><th>Invoices</th><th>Expenses</th><th>Profit</th></tr></thead><tbody id="monthlyReportBody"></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="page" id="invoicePage">
+      <form id="invoiceForm" class="grid invoice-layout">
+        <div class="card">
+          <div class="card-head">
+            <h3>Invoice Details</h3>
+            <span class="badge" id="invoiceNoPreview">Loading...</span>
+          </div>
+          <div class="grid two compact">
+            <label>Invoice Date<input type="date" id="invoiceDate" required /></label>
+            <label>Due Date<input type="date" id="dueDate" /></label>
+            <label>Customer Name<input type="text" id="customerName" placeholder="Customer name" required /></label>
+            <label>Phone<input type="text" id="customerPhone" placeholder="03xx..." required /></label>
+            <label>Email<input type="email" id="customerEmail" placeholder="optional" /></label>
+            <label>Payment Method<select id="paymentMethod"><option>Cash</option><option>Bank</option><option>Card</option><option>Online</option></select></label>
+          </div>
+          <label>Customer Address<textarea id="customerAddress" rows="2" placeholder="optional"></textarea></label>
+          <label>Invoice Notes<textarea id="invoiceNotes" rows="2" placeholder="special note for this invoice"></textarea></label>
+        </div>
+
+        <div class="card items-card">
+          <div class="card-head">
+            <h3>Services / Items</h3>
+            <button type="button" class="btn small secondary" id="addItemBtn">+ Add item</button>
+          </div>
+          <div class="items-head"><span>Service Type</span><span>Item</span><span>Qty</span><span>Unit Price</span><span>Total</span><span></span></div>
+          <div id="itemsList"></div>
+          <div class="totals-panel">
+            <label>Discount<input type="number" id="discount" min="0" step="1" inputmode="numeric" value="0" /></label>
+            <label>Tax %<input type="number" id="taxRate" min="0" step="0.01" value="0" /><small class="hint">Final tax is rounded to whole PKR.</small></label>
+            <label>Paid<input type="number" id="paidAmount" min="0" step="1" inputmode="numeric" value="0" /></label>
+            <div class="total-box"><span>Subtotal</span><strong id="subtotalText">PKR 0.00</strong></div>
+            <div class="total-box"><span>Grand Total</span><strong id="grandTotalText">PKR 0.00</strong></div>
+            <div class="total-box balance"><span>Balance</span><strong id="balanceText">PKR 0.00</strong></div>
+          </div>
+          <label class="check"><input type="checkbox" id="openAfterSave" checked /> Open PDF after save</label>
+          <div class="actions right">
+            <button type="button" class="btn secondary hidden" id="cancelEditBtn">Cancel Edit</button>
+            <button type="button" class="btn secondary" id="resetInvoiceBtn">Reset</button>
+            <button type="submit" class="btn primary" id="saveInvoiceBtn">Save Invoice & Generate PDF</button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <section class="page" id="historyPage">
+      <div class="card">
+        <div class="card-head"><h3>Invoice History</h3><button class="btn small secondary" id="reloadInvoicesBtn">Reload</button></div>
+        <div class="filters">
+          <input type="text" id="historySearch" placeholder="Search invoice no, customer, phone" />
+          <input type="date" id="historyStart" />
+          <input type="date" id="historyEnd" />
+          <select id="historyStatus"><option value="">All Status</option><option>Paid</option><option>Partial</option><option>Unpaid</option></select>
+          <button class="btn secondary" id="searchInvoicesBtn">Search</button>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>INVOICE NO.</th><th>Date</th><th>Customer</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th><th>Actions</th></tr></thead><tbody id="invoiceHistoryBody"></tbody></table></div><div class="actions center"><button type="button" class="btn small secondary hidden" id="loadMoreInvoicesBtn">Load More Invoices</button></div>
+      </div>
+    </section>
+
+    <section class="page" id="customersPage">
+      <div class="card">
+        <div class="card-head"><h3>Customer Database</h3><button class="btn small secondary" id="reloadCustomersBtn">Reload</button></div>
+        <div class="filters"><input type="text" id="customerSearch" placeholder="Search customers" /><button class="btn secondary" id="searchCustomersBtn">Search</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Invoices</th><th>Lifetime Value</th><th>Last Invoice</th><th>Actions</th></tr></thead><tbody id="customersBody"></tbody></table></div><div class="actions center"><button type="button" class="btn small secondary hidden" id="loadMoreCustomersBtn">Load More Customers</button></div>
+      </div>
+    </section>
+
+    <section class="page" id="expensesPage">
+      <div class="grid two">
+        <div class="card">
+          <h3>Add Expense</h3>
+          <form id="expenseForm" class="stack">
+            <label>Date<input type="date" id="expenseDate" required /></label>
+            <label>Category<input type="text" id="expenseCategory" placeholder="Rent, Salary, Detergent" required /></label>
+            <label>Description<input type="text" id="expenseDescription" /></label>
+            <label>Amount<input type="number" id="expenseAmount" min="0" step="1" inputmode="numeric" required /></label>
+            <label>Payment Method<select id="expensePayment"><option>Cash</option><option>Bank</option><option>Card</option><option>Online</option></select></label>
+            <label>Notes<textarea id="expenseNotes" rows="2"></textarea></label>
+            <button class="btn primary" type="submit">Save Expense</button>
+          </form>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Expense Records</h3><button class="btn small secondary" id="reloadExpensesBtn">Reload</button></div>
+          <div class="filters"><input type="text" id="expenseSearch" placeholder="Search expenses" /><button class="btn secondary" id="searchExpensesBtn">Search</button></div>
+          <div class="table-wrap"><table><thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th></th></tr></thead><tbody id="expensesBody"></tbody></table></div><div class="actions center"><button type="button" class="btn small secondary hidden" id="loadMoreExpensesBtn">Load More Expenses</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="settingsPage">
+      <div class="grid two">
+        <div class="card">
+          <h3>Business Settings</h3>
+          <form id="settingsForm" class="stack">
+            <label>Shop Name<input type="text" id="shopName" /></label>
+            <label>Tagline<input type="text" id="shopTagline" /></label>
+            <label>Address<textarea id="shopAddress" rows="2"></textarea></label>
+            <label>Phone<input type="text" id="shopPhone" /></label>
+            <label>Email<input type="email" id="shopEmail" /></label>
+            <div class="grid two compact"><label>Currency<input type="text" id="currency" /></label><label>Invoice Prefix<input type="text" id="invoicePrefix" /></label></div>
+            <label>Default Tax %<input type="number" id="defaultTaxRate" min="0" step="0.01" /><small class="hint">Invoice tax amount is rounded to whole PKR.</small></label>
+            <label>Service Dropdown Prices<textarea id="serviceItems" rows="7" placeholder="Wash & Fold=300"></textarea><small class="hint">One item per line, format: Item - Service=Price. Services: Wash & Iron, Wash Only, Iron Only, Dry Clean.</small></label>
+            <label>Footer Note<textarea id="footerNote" rows="2"></textarea></label>
+            <label>Terms Note<textarea id="termsNote" rows="3"></textarea></label>
+            <div class="actions">
+              <button type="button" class="btn secondary" id="selectLogoBtn">Select Logo</button>
+              <button type="submit" class="btn primary">Save Settings</button>
+            </div>
+          </form>
+        </div>
+        <div class="card">
+          <h3>Backup / Restore</h3>
+          <p class="muted">Backup includes SQLite database, generated PDF invoices, and uploaded assets. Restore now validates the ZIP and database before replacing live data.</p>
+          <div class="backup-box">
+            <button class="btn primary" id="backupBtn">Create Backup ZIP</button>
+            <button class="btn secondary" id="restoreBtn">Restore Backup ZIP</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <footer class="app-footer" aria-hidden="true">
+      <strong>✳ NovaBill Laundry</strong>
+      <span>Smart Billing. Clean Business.</span>
+    </footer>
+  </main>
+
+  <div id="toast" class="toast"></div>
+  <div id="paymentModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-box">
+      <h3>Update Payment</h3>
+      <p class="muted" id="paymentModalText">Enter received amount.</p>
+      <label>Payment Received Now
+        <input type="number" id="paymentModalAmount" min="1" step="1" inputmode="numeric" />
+      </label>
+      <div class="actions right">
+        <button type="button" class="btn secondary" id="cancelPaymentBtn">Cancel</button>
+        <button type="button" class="btn primary" id="confirmPaymentBtn">Update Payment</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="confirmModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-box danger-modal">
+      <h3 id="confirmModalTitle">Confirm Action</h3>
+      <p class="muted" id="confirmModalText">Are you sure?</p>
+      <div class="actions right">
+        <button type="button" class="btn secondary" id="cancelConfirmBtn">Cancel</button>
+        <button type="button" class="btn danger" id="confirmActionBtn">Confirm</button>
+      </div>
+    </div>
+  </div>
+  <script src="money_logic.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

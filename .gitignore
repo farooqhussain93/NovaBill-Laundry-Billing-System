@@ -1,0 +1,21 @@
+# Build outputs
+# Keep app data for local use, but do not commit client data by default
+*.log
+*.pyc
+*.pyd
+*.pyo
+*.spec
+*.sqlite
+*.sqlite3
+.DS_Store
+Thumbs.db
+__pycache__/
+backups/*.zip
+build/
+data/*.db
+data/*.db-shm
+data/*.db-wal
+dist/
+invoices/**/*.pdf
+logs/*.log
+venv/
