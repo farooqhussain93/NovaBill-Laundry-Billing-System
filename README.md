@@ -129,10 +129,10 @@ These ideas are outside the current v1.0.0 scope and can be considered for a fut
 
 ## Final Status
 
-This is the finalized portfolio version of the project. No further feature changes are planned for v1.0.0.
+This is the finalized version of the project. No further feature changes are planned for v1.0.0.
 
 ---
 
 ## License
 
-This project is provided for portfolio and educational purposes. See the `LICENSE` file for details.
+This project is provided for educational purposes. See the `LICENSE` file for details.
